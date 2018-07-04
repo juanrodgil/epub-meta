@@ -28,7 +28,6 @@ def iterate_all_tags(root):
         for subnode in iterate_all_tags(node):
             yield subnode
 
-
 def find_tag(xmldoc, tag_name, attr, value):
     # print('Finding tag: <{} {}="{}">'.format(tag_name, attr, value))
     for tag in xmldoc.getElementsByTagName(tag_name):
@@ -86,6 +85,17 @@ def __discover_dc(opf_xmldoc, name, first_only=True):
 def _discover_title(opf_xmldoc):
     return __discover_dc(opf_xmldoc, 'title')
 
+def _discover_series(opf_xmldoc):
+    # ePub 2.x (calibre not standard metadata)
+    tag = find_tag(opf_xmldoc, 'meta', 'name', 'calibre:series')
+    if tag and tag.hasAttribute('content'):
+        return tag.getAttribute('content')
+
+def _discover_series_index(opf_xmldoc):
+    # ePub 2.x (calibre not standard metadata)
+    tag = find_tag(opf_xmldoc, 'meta', 'name', 'calibre:series_index')
+    if tag and tag.hasAttribute('content'):
+        return tag.getAttribute('content')
 
 def _discover_language(opf_xmldoc):
     return __discover_dc(opf_xmldoc, 'language')
@@ -367,6 +377,8 @@ def get_epub_metadata(filepath, read_cover_image=True, read_toc=True):
     data = odict({
         'epub_version': _discover_epub_version(opf_xmldoc),
         'title': _discover_title(opf_xmldoc),
+        'series': _discover_series(opf_xmldoc),
+        'series_index': _discover_series_index(opf_xmldoc),
         'language': _discover_language(opf_xmldoc),
         'description': _discover_description(opf_xmldoc),
         'authors': _discover_authors(opf_xmldoc, authors_html=authors_html),
